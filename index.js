@@ -50,6 +50,37 @@ async function run() {
             res.send(article);
         })
 
+        app.get('/myArticles', async (req, res) => {
+
+            const email = req.query.email;
+
+            const articles = await newsCollection.find({ email }).toArray();
+            res.send(articles);
+
+        });
+
+        app.patch('/articles/:id', async (req, res) => {
+
+            const { id } = req.params;
+            const { title, description, status, isPremium } = req.body;
+
+            const result = await articlesCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: { title, description, status, isPremium } }
+            );
+
+            res.send(result)
+        });
+
+        app.delete('/articles/:id', async (req, res) => {
+
+            const { id } = req.params;
+            const result = await articlesCollection.deleteOne({ _id: new ObjectId(id) });
+
+            res.send(result);
+
+        });
+
         // user related apis
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
