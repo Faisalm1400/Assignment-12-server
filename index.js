@@ -29,7 +29,9 @@ async function run() {
         await client.connect();
 
         const newsCollection = client.db("newsDb").collection("articles");
+        const userCollection = client.db("newsDb").collection("users");
 
+        // articles related apis
         app.get('/articles', async (req, res) => {
             const result = await newsCollection.find().toArray();
             res.send(result);
@@ -48,6 +50,37 @@ async function run() {
             res.send(article);
         })
 
+        // user related apis
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post('/users', async (req, res) => {
+            const newUser = req.body;
+            // console.log('creating new user', newUser);
+            const result = await userCollection.insertOne(newUser);
+            res.send(result);
+        })
+
+        app.get('/users', async (req, res) => {
+
+            const email = req.query.email;
+            console.log(email)
+            const result = await userCollection.find({ email }).toArray();
+            res.send(result)
+        });
+
+        app.patch("/users", async (req, res) => {
+
+            const { email, name, photo } = req.body;
+
+            const result = await userCollection.updateOne(
+                { email },
+                { $set: { name, photo } }
+            );
+            res.send(result)
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
