@@ -61,7 +61,7 @@ async function run() {
 
         app.patch('/articles/:id', async (req, res) => {
 
-            const { id } = req.params;
+            const id = req.params.id;
             const { title, description, status, isPremium } = req.body;
 
             const result = await articlesCollection.updateOne(
@@ -74,8 +74,9 @@ async function run() {
 
         app.delete('/articles/:id', async (req, res) => {
 
-            const { id } = req.params;
-            const result = await articlesCollection.deleteOne({ _id: new ObjectId(id) });
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await newsCollection.deleteOne(query);
 
             res.send(result);
 
@@ -88,13 +89,18 @@ async function run() {
         })
 
         app.post('/users', async (req, res) => {
-            const newUser = req.body;
+            const user = req.body;
             // console.log('creating new user', newUser);
-            const result = await userCollection.insertOne(newUser);
+            const query = {email: user.email}
+            const existingUser = await userCollection.findOne(query);
+            if(existingUser){
+                return res.send({message: 'User already exists', insertedId: null})
+            }
+            const result = await userCollection.insertOne(user);
             res.send(result);
         })
 
-        app.get('/users', async (req, res) => {
+        app.get('/myProfile', async (req, res) => {
 
             const email = req.query.email;
             console.log(email)
