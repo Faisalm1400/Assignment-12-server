@@ -101,16 +101,33 @@ async function run() {
 
         });
 
-        app.patch('/articles/:id', async (req, res) => {
+        app.patch('/articles/approve/:id', async (req, res) => {
 
             const id = req.params.id;
-            const { title, description, status, isPremium } = req.body;
-
             const result = await newsCollection.updateOne(
                 { _id: new ObjectId(id) },
-                { $set: { title, description, status, isPremium } }
+                { $set: { status: "approved" } }
             );
 
+            res.send(result)
+        });
+
+        app.patch("/articles/decline/:id", async (req, res) => {
+            const { reason } = req.body;
+            const id = req.params.id;
+            const result = await newsCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: { status: "declined", declineReason: reason } }
+            );
+            res.send(result);
+        });
+
+        app.patch("/articles/premium/:id", async (req, res) => {
+            const id = req.params.id;
+            const result = await newsCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: { isPremium: true } }
+            );
             res.send(result)
         });
 
@@ -188,7 +205,13 @@ async function run() {
             res.send(result);
         });
 
-        app.post('/admin/publishers', async (req, res) => {
+        app.get("/publishers", async (req, res) => {
+            const result = await publishersCollection.find().toArray();
+            res.send(result);
+
+        });
+
+        app.post('/admin/publishers', verifyToken, verifyAdmin, async (req, res) => {
 
             const { name, logo } = req.body;
             if (!name || !logo) return res.status(400).json({ message: "Name and logo are required!" });
