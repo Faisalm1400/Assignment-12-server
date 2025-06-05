@@ -31,7 +31,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const newsCollection = client.db("newsDb").collection("articles");
         const userCollection = client.db("newsDb").collection("users");
@@ -152,6 +152,24 @@ async function run() {
         });
 
         // user related apis
+
+        app.get("/stats", async (req, res) => {
+                const users = await userCollection.find().toArray();
+
+                const premiumUsers = users.filter(user => user.premiumTaken);
+
+                const totalUsers = users.length;
+                const premiumUserCount = premiumUsers.length;
+                const normalUserCount = totalUsers - premiumUserCount;
+
+                res.send({
+                    totalUsers,
+                    normalUsers: normalUserCount,
+                    premiumUsers: premiumUserCount,
+                });
+           
+        });
+
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
@@ -269,8 +287,8 @@ async function run() {
         });
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
