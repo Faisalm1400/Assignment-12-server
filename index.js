@@ -228,7 +228,35 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.deleteOne(query);
             res.send(result);
-        })
+        });
+
+        app.patch("/users/subscribe", async (req, res) => {
+
+            const { email, duration } = req.body;
+            const expirationTime = new Date(Date.now() + duration * 86400000);
+
+            const result = await userCollection.updateOne(
+                { email },
+                { $set: { premiumTaken: expirationTime } }
+            );
+
+            res.send(result);
+
+        });
+
+        app.get("/users/premium-status/:email", async (req, res) => {
+            
+                const email = req.params.email;
+                const user = await userCollection.findOne({ email });
+
+                if (user?.premiumTaken && new Date() > user.premiumTaken) {
+                    await userCollection.updateOne({ email }, { $set: { premiumTaken: null } });
+                    return res.json({ isPremium: false });
+                }
+
+                res.json({ isPremium: !!user?.premiumTaken });
+            
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
