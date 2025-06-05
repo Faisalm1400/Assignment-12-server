@@ -75,7 +75,17 @@ async function run() {
 
         // articles related apis
         app.get('/articles', async (req, res) => {
-            const result = await newsCollection.find().toArray();
+            const { search, publisher } = req.query;
+            let query = {};
+
+            if (search) {
+                query.title = { $regex: search, $options: "i" };
+            }
+
+            if (publisher) {
+                query.publisher = publisher;
+            }
+            const result = await newsCollection.find(query).toArray();
             res.send(result);
         })
 
@@ -245,17 +255,17 @@ async function run() {
         });
 
         app.get("/users/premium-status/:email", async (req, res) => {
-            
-                const email = req.params.email;
-                const user = await userCollection.findOne({ email });
 
-                if (user?.premiumTaken && new Date() > user.premiumTaken) {
-                    await userCollection.updateOne({ email }, { $set: { premiumTaken: null } });
-                    return res.json({ isPremium: false });
-                }
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email });
 
-                res.json({ isPremium: !!user?.premiumTaken });
-            
+            if (user?.premiumTaken && new Date() > user.premiumTaken) {
+                await userCollection.updateOne({ email }, { $set: { premiumTaken: null } });
+                return res.json({ isPremium: false });
+            }
+
+            res.json({ isPremium: !!user?.premiumTaken });
+
         });
 
         // Send a ping to confirm a successful connection
