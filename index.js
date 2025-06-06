@@ -10,7 +10,10 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173",
+        "https://newspaper-260ae.web.app",
+        "https://newspaper-260ae.firebaseapp.com"
+    ],
     credentials: true
 }));
 app.use(express.json());
@@ -154,20 +157,20 @@ async function run() {
         // user related apis
 
         app.get("/stats", async (req, res) => {
-                const users = await userCollection.find().toArray();
+            const users = await userCollection.find().toArray();
 
-                const premiumUsers = users.filter(user => user.premiumTaken);
+            const premiumUsers = users.filter(user => user.premiumTaken);
 
-                const totalUsers = users.length;
-                const premiumUserCount = premiumUsers.length;
-                const normalUserCount = totalUsers - premiumUserCount;
+            const totalUsers = users.length;
+            const premiumUserCount = premiumUsers.length;
+            const normalUserCount = totalUsers - premiumUserCount;
 
-                res.send({
-                    totalUsers,
-                    normalUsers: normalUserCount,
-                    premiumUsers: premiumUserCount,
-                });
-           
+            res.send({
+                totalUsers,
+                normalUsers: normalUserCount,
+                premiumUsers: premiumUserCount,
+            });
+
         });
 
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
